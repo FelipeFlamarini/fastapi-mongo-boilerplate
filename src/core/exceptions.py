@@ -14,4 +14,13 @@ class ConflictException(HTTPException):
 
 class UnauthorizedException(HTTPException):
     def __init__(self, detail: str = "Unauthorized"):
-        super().__init__(status_code=HTTPStatus.UNAUTHORIZED, detail=detail)
+        super().__init__(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail=detail,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+class ForbiddenException(HTTPException):
+    def __init__(self, detail: str = "Forbidden"):
+        super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=detail)

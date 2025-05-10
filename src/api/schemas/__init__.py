@@ -1,1 +1,2 @@
-from src.api.schemas.User import UserReturn, UserCreate, UserDelete, UserUpdate
+from src.api.schemas.Auth import *
+from src.api.schemas.User import *

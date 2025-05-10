@@ -3,12 +3,7 @@ from beanie import PydanticObjectId
 
 from src.api.repositories.User import UserRepository
 from src.api.models import User
-from src.core.exceptions import (
-    NotFoundException,
-    ConflictException,
-    UnauthorizedException,
-)
-from src.core.security import verify_password
+from src.core.exceptions import *
 
 
 class UserService:
@@ -17,10 +12,17 @@ class UserService:
         return await UserRepository.find_all_users()
 
     @staticmethod
-    async def find_user_by_id(user_id) -> User:
+    async def find_user_by_id(user_id: str) -> User:
         user = await UserRepository.find_user_by_id(user_id)
         if not user:
             raise NotFoundException(f"User with id {user_id} not found")
+        return user
+
+    @staticmethod
+    async def find_user_by_email(email: str) -> User:
+        user = await UserRepository.find_user_by_email(email)
+        if not user:
+            raise NotFoundException(f"User with email {email} not found")
         return user
 
     @staticmethod
@@ -41,12 +43,3 @@ class UserService:
         user = await UserRepository.find_user_by_id(user_id)
         if not user:
             raise NotFoundException(f"User with id {user_id} not found")
-
-    @staticmethod
-    async def authenticate_user(email: str, plain_password: str) -> User:
-        user = await UserRepository.find_user_by_email(email)
-        if not user:
-            raise UnauthorizedException(f"Email or password is incorrect")
-        if not verify_password(plain_password, user.hashed_password):
-            raise UnauthorizedException(f"Email or password is incorrect")
-        return user
