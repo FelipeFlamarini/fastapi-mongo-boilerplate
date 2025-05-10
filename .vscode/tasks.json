@@ -4,7 +4,7 @@
         {
             "label": "(dev) Run fastapi server",
             "type": "shell",
-            "command": "fastapi dev src/app.py --host 0.0.0.0",
+            "command": "dotenvx run -f .env.local  -- fastapi dev src/app.py --host 0.0.0.0",
             "problemMatcher": []
         },
         {
