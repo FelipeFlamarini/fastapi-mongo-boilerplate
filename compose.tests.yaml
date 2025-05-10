@@ -1,0 +1,19 @@
+services:
+  api-test:
+    build:
+      dockerfile: Dockerfile
+    command: poetry run pytest
+    env_file:
+      - .env.local
+    environment:
+      - MONGO_URL=${MONGO_URL:-mongodb://root:changeme@db-test:27017}
+    depends_on:
+      - db-test
+    restart: "no"
+    profiles: [ "test" ]
+
+  db-test:
+    image: mongo:8.0.9
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: changeme

@@ -1,0 +1,22 @@
+[project]
+name="a"
+description = ""
+authors = [
+    {name = "Felipe Flamarini",email = "felipeflamarini@hotmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python =">=3.12,<4.0"
+dependencies = [
+    "fastapi[all] (>=0.115.12,<0.116.0)",
+    "beanie (>=1.29.0,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "pytest (>=8.3.5,<9.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
