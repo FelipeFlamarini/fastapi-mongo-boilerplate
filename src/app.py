@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from src.core import init_db
+from src.api.routers import user_router
 
 
 @asynccontextmanager
@@ -13,7 +14,4 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.include_router(user_router)

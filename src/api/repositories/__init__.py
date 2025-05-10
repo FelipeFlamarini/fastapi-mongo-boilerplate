@@ -1,1 +1,1 @@
-from src.repositories.User import UserRepository
+from src.api.repositories.User import UserRepository
