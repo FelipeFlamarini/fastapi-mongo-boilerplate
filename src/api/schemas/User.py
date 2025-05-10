@@ -15,7 +15,7 @@ class UserReturn(BaseModel):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    hashed_password: str
+    password: str
 
 
 class UserUpdate(BaseModel):

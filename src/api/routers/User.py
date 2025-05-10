@@ -5,7 +5,7 @@ from beanie import PydanticObjectId
 from pydantic import EmailStr
 
 from src.api.services import UserService
-from src.api.schemas import UserReturn
+from src.api.schemas import UserReturn, UserCreate
 
 user_router = APIRouter(prefix="/user", tags=["user"])
 
@@ -26,22 +26,21 @@ async def find_user_by_id(
 
 @user_router.post("/", response_model=UserReturn)
 async def create_user(
-    email: EmailStr,
-    hashed_password: str
+    user: UserCreate
 ) -> UserReturn:
-    return await UserService.create_user(email, hashed_password)
+    return await UserService.create_user(user.email, user.password)
 
 
 @user_router.patch("/{user_id}", response_model=UserReturn)
 async def update_user(
     user_id: PydanticObjectId,
     name: Optional[str] = None,
-    hashed_password: Optional[str] = None,
+    password: Optional[str] = None,
     is_active: Optional[bool] = None,
     is_superuser: Optional[bool] = None,
     is_verified: Optional[bool] = None
 ) -> UserReturn:
     return await UserService.update_user(
-        user_id, name=name, hashed_password=hashed_password,
+        user_id, name=name, plain_password=password,
         is_active=is_active, is_superuser=is_superuser, is_verified=is_verified
     )

@@ -3,7 +3,7 @@ from enum import Enum
 import jwt
 
 from datetime import datetime, timedelta, UTC
-from core.config import get_settings
+from src.core.config import get_settings
 
 settings = get_settings()
 

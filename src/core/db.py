@@ -1,7 +1,7 @@
 from beanie import init_beanie
 import motor.motor_asyncio
 
-from src.core import get_settings
+from src.core.config import get_settings
 from src.api import models
 
 settings = get_settings()
