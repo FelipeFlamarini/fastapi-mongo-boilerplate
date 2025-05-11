@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from src.core.config import get_settings
 from src.core.exceptions import UnauthorizedException
-from src.api.services import AuthService
+from src.api.services import AuthService, UserService
+from src.api.schemas import UserReturn, UserCreate
 
 
 settings = get_settings()
@@ -23,7 +24,7 @@ async def login(
         value=return_data["refresh_token"],
         httponly=True,
         secure=True,
-        samesite="None",
+        samesite="lax",
         max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
     )
     return {
@@ -39,3 +40,8 @@ async def refresh_access_token(request: Request):
         raise UnauthorizedException("Refresh token not found")
 
     return await AuthService.refresh_access_token(refresh_token=refresh_token)
+
+
+@auth_router.post("/register", response_model=UserReturn)
+async def create_user(user: UserCreate) -> UserReturn:
+    return await UserService.create_user(user.email, user.password)

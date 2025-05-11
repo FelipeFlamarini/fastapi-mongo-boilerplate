@@ -1,117 +1,34 @@
 from fastapi.testclient import TestClient
 import pytest
+from beanie import PydanticObjectId
 
-from ..app import app
-from ..core.db import init_db
-
-
-@pytest.fixture(autouse=True)
-async def setup():
-    yield await init_db()
+from src.api.schemas import UserReturn
 
 
-@pytest.fixture
-def client():
-    with TestClient(app) as client:
-        yield client
+def test_find_all_users(client: TestClient):
+    response = client.get("/user", headers={"Authorization": ""})
+    assert response.status_code == 401
+
+    response = client.get("/user")
+    data = response.json()
+    assert response.status_code == 200
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert all(
+        UserReturn.model_validate(user) for user in data
+    ), "All items in the list should be of type UserReturn"
 
 
-def test_create_user_conflict(client: TestClient):
-    client.post(
-        "/user", json={"email": "test_conflict@email.com", "password": "Password123"}
-    )
-
-    response_conflict = client.post(
-        "/user", json={"email": "test_conflict@email.com", "password": "Password123"}
-    )
-    assert response_conflict.status_code == 409
+@pytest.fixture(scope="module")
+def first_user_id(client: TestClient) -> PydanticObjectId:
+    response = client.get("/user")
+    return response.json()[0]["id"]
 
 
-@pytest.mark.parametrize(
-    "payload,expected_status,test_id",
-    [
-        (
-            {"email": "test_all_valid@email.com", "password": "Password123"},
-            200,
-            "test_all_valid",
-        ),
-        ({"email": "invalid_email", "password": "Password123"}, 422, "invalid_email"),
-        (
-            {"email": "test_invalid_password_0_length@email.com", "password": ""},
-            422,
-            "invalid_password_0_length",
-        ),
-        (
-            {
-                "email": "test_invalid_password_7_length@email.com",
-                "password": "1234567",
-            },
-            422,
-            "invalid_password_7_length",
-        ),
-        (
-            {
-                "email": "test_invalid_password_no_lowercase@email.com",
-                "password": "ABCD1234",
-            },
-            422,
-            "invalid_password_no_lowercase",
-        ),
-        (
-            {
-                "email": "test_invalid_password_no_uppercase@email.com",
-                "password": "abcd1234",
-            },
-            422,
-            "invalid_password_no_uppercase",
-        ),
-        (
-            {
-                "email": "test_invalid_password_no_numbers@email.com",
-                "password": "ABCDefgh",
-            },
-            422,
-            "invalid_password_no_numbers",
-        ),
-        (
-            {
-                "email": "test_invalid_password_no_numbers@email.com",
-                "password": "ABCDefgh",
-            },
-            422,
-            "invalid_password_no_numbers",
-        ),
-        (
-            {
-                "email": "test_invalid_password_33_length@email.com",
-                "password": "ABCDEFGHIJabcdefghij1234567890abc",
-            },
-            422,
-            "invalid_password_33_length",
-        ),
-        (
-            {
-                "email": "test_valid_password_8_length@email.com",
-                "password": "ABCdef12",
-            },
-            200,
-            "valid_password_8_length",
-        ),
-        (
-            {
-                "email": "test_valid_password_32_length@email.com",
-                "password": "ABCDEFGHIJabcdefghij1234567890ab",
-            },
-            200,
-            "valid_password_32_length",
-        ),
-        ({"password": "Password123"}, 422, "missing_email"),
-        ({"email": "test_missing_password@email.com"}, 422, "missing_password"),
-        ({}, 422, "missing_all_fields"),
-    ],
-)
-def test_create_user_invalid_inputs(
-    client: TestClient, payload, expected_status, test_id
-):
-    response = client.post("/user", json=payload)
-    assert response.status_code == expected_status, f"Failed for case: {test_id}"
+def test_get_user_by_id(client: TestClient, first_user_id: PydanticObjectId):
+    response = client.get(f"/user/{first_user_id}")
+    assert response.status_code == 200
+
+    user_data = response.json()
+    assert user_data["id"] == first_user_id
+    assert UserReturn.model_validate(user_data)

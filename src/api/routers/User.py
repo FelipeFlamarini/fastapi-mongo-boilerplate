@@ -21,11 +21,6 @@ async def find_user_by_id(user_id: PydanticObjectId) -> UserReturn:
     return await UserService.find_user_by_id(user_id)
 
 
-@user_router.post("/", response_model=UserReturn)
-async def create_user(user: UserCreate) -> UserReturn:
-    return await UserService.create_user(user.email, user.password)
-
-
 @user_router.patch("/{user_id}", response_model=UserReturn)
 async def update_user(
     user_id: PydanticObjectId,
