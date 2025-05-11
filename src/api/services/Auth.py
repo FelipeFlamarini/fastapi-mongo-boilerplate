@@ -1,5 +1,7 @@
 from datetime import timedelta
 from typing import TYPE_CHECKING
+from pydantic import EmailStr
+from pymongo.errors import DuplicateKeyError
 
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -13,6 +15,7 @@ from src.core.security import (
 )
 from src.api.models import User
 from src.api.services.User import UserService
+from src.api.repositories import UserRepository
 from src.types import TokenType
 
 
@@ -27,6 +30,14 @@ class AuthService:
             raise UnauthorizedException(f"Email or password is incorrect")
         if not verify_password(plain_password, user.hashed_password):
             raise UnauthorizedException(f"Email or password is incorrect")
+        return user
+
+    @staticmethod
+    async def create_user(email: EmailStr, plain_password: str) -> User:
+        try:
+            user = await UserRepository.create_user(email, plain_password)
+        except DuplicateKeyError as e:
+            raise ConflictException(f"User with email {email} already exists")
         return user
 
     @staticmethod

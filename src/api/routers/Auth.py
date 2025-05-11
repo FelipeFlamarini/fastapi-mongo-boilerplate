@@ -44,4 +44,4 @@ async def refresh_access_token(request: Request):
 
 @auth_router.post("/register", response_model=UserReturn)
 async def create_user(user: UserCreate) -> UserReturn:
-    return await UserService.create_user(user.email, user.password)
+    return await AuthService.create_user(user.email, user.password)

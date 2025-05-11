@@ -1,9 +1,9 @@
 from typing import Optional, Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from beanie import PydanticObjectId
 
 from src.api.services import UserService
-from src.api.schemas import UserReturn, UserCreate
+from src.api.schemas import UserReturn
 from src.api.dependencies import get_current_active_user
 
 user_router = APIRouter(prefix="/user", tags=["user"])
@@ -16,9 +16,16 @@ async def find_all_users(
     return await UserService.find_all_users()
 
 
-@user_router.get("/{user_id}", response_model=UserReturn)
-async def find_user_by_id(user_id: PydanticObjectId) -> UserReturn:
-    return await UserService.find_user_by_id(user_id)
+@user_router.get("/search", response_model=list[UserReturn])
+async def search_users(
+    current_user: Annotated[UserReturn, Depends(get_current_active_user)],
+    query: str,
+    search_fields: list[str] = Query(
+        default=["id", "email", "name"],
+        description="Fields to search in. Options: id, email, name, or any combination",
+    ),
+) -> list[UserReturn]:
+    return await UserService.search_users(query, search_fields)
 
 
 @user_router.patch("/{user_id}", response_model=UserReturn)

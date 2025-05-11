@@ -21,7 +21,6 @@ async def get_current_user(
         raise UnauthorizedException("User not authenticated.")
 
     user = await UserService.find_user_by_id(user_id)
-    print(user)
 
     if user:
         return UserReturn(**user.model_dump())
