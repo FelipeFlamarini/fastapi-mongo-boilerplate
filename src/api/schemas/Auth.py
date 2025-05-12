@@ -32,8 +32,3 @@ class AuthTokenDeactivation(BaseModel):
 
 class AuthTokenDeactivationReturn(AuthTokenDeactivation):
     pass
-
-
-class AuthLogin(BaseModel):
-    email: str
-    password: str

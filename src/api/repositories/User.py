@@ -48,7 +48,8 @@ class UserRepository:
 
     @staticmethod
     async def create_user(email: str, plain_password: str) -> User | None:
-        user = User(email=email, hashed_password=get_password_hash(plain_password))
+        user = User(
+            email=email, hashed_password=get_password_hash(plain_password))
         await user.insert()
         return user
 

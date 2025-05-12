@@ -11,7 +11,7 @@ from src.api.schemas import UserReturn
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
-) -> dict[str, Any] | None:
+) -> UserReturn:
     token_data = verify_token(token, TokenType.ACCESS)
     if token_data is None:
         raise UnauthorizedException("User not authenticated.")
