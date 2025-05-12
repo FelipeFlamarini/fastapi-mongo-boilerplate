@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, UTC
-from passlib.context import CryptContext
+import bcrypt
 import jwt
 
 from fastapi.security import OAuth2PasswordBearer
@@ -10,14 +10,11 @@ from src.types import TokenType
 settings = get_settings()
 
 
-__pwd_context__ = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return __pwd_context__.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 
 
 def _encode_jwt(data: dict) -> str:
@@ -25,7 +22,7 @@ def _encode_jwt(data: dict) -> str:
 
 
 def get_password_hash(password: str) -> str:
-    return __pwd_context__.hash(password)
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def create_token(data: dict, token_type: TokenType):
