@@ -28,8 +28,16 @@ def credentials_data() -> dict:
 
 
 @pytest.fixture(autouse=True, scope="session")
-def register_user(client: TestClient, credentials_json: dict) -> None:
+def register_user(client: TestClient, credentials_json: dict) -> dict:
     response = client.post("/auth/register", json=credentials_json)
+    assert response.status_code == 200
+
+    return response.json()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def verify_user(client: TestClient, register_user: dict) -> None:
+    response = client.patch("/auth/verify", json=register_user)
     assert response.status_code == 200
 
     return None
@@ -60,12 +68,12 @@ def auth_tokens(
     return None
 
 
-# @pytest.fixture(autouse=True, scope="session")
-# def patch_user_name(client: TestClient, auth_tokens: dict) -> None:
-#     response = client.patch(
-#         "/user",
-#         json={"name": "Test User"},
-#     )
-#     assert response.status_code == 200
-#     data = response.json()
-#     assert data["name"] == "Test User"
+@pytest.fixture(autouse=True, scope="session")
+def patch_user_name(client: TestClient, auth_tokens: dict) -> None:
+    response = client.patch(
+        "/user/me",
+        json={"name": "Test User"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "Test User"

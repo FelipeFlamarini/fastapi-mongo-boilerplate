@@ -31,7 +31,7 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    name: Optional[str]
+    name: Optional[str] = Field(default=None, min_length=3, max_length=64)
 
 
 class UserDelete(BaseModel):

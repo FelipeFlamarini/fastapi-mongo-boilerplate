@@ -5,7 +5,7 @@ from .conftest import validate_new_token_response
 
 
 @pytest.mark.parametrize(
-    "test_id,cookies,headers,expected_status,should_validate_token,should_expect_detail",
+    "test_id, cookies, headers, expected_status, should_validate_token, should_expect_detail",
     [
         ("refresh_valid_cookies_and_headers", {}, {}, 200, True, False),
         ("refresh_only_cookies", {}, {"Authorization": ""}, 200, True, False),

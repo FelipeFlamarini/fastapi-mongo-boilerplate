@@ -5,7 +5,7 @@ from .conftest import validate_new_token_response
 
 
 @pytest.mark.parametrize(
-    "test_id,credentials_parametrized_data,expected_status,should_validate_token, should_expect_detail",
+    "test_id, credentials_parametrized_data, expected_status, should_validate_token, should_expect_detail",
     [
         ("valid_login", {}, 200, True, False),
         (

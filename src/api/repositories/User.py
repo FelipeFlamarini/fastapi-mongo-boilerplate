@@ -53,12 +53,6 @@ class UserRepository:
         return user
 
     @staticmethod
-    async def update_user_name(user: User, name: str) -> User | None:
-        user.name = name
-        await user.save()
-        return user
-
-    @staticmethod
     async def update_user_password(user: User, plain_password: str) -> User | None:
         user.hashed_password = get_password_hash(plain_password)
         await user.save()
@@ -97,5 +91,15 @@ class UserRepository:
     @staticmethod
     async def unverify_user(user: User) -> User | None:
         user.is_verified = False
+        await user.save()
+        return user
+
+    @staticmethod
+    async def update_user_generic_details(
+        user: User, data: dict[str, str]
+    ) -> User | None:
+        for key, value in data.items():
+            if hasattr(user, key):
+                setattr(user, key, value)
         await user.save()
         return user

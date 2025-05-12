@@ -5,8 +5,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from src.core.config import get_settings
 from src.core.exceptions import UnauthorizedException
-from src.api.services import AuthService, UserService
-from src.api.schemas import UserReturn, UserCreate
+from src.api.models import User
+from src.api.services import AuthService
+from src.api.schemas import (
+    UserCreate,
+    UserReturn,
+    AuthTokenVerification,
+    AuthTokenVerificationReturn,
+    AuthTokenActivation,
+    AuthTokenActivationReturn,
+    AuthTokenDeactivation,
+    AuthTokenDeactivationReturn,
+)
+from src.api.dependencies import get_current_user, get_current_active_user
 
 
 settings = get_settings()
@@ -42,6 +53,41 @@ async def refresh_access_token(request: Request):
     return await AuthService.refresh_access_token(refresh_token=refresh_token)
 
 
-@auth_router.post("/register", response_model=UserReturn)
-async def create_user(user: UserCreate) -> UserReturn:
+@auth_router.post("/register", response_model=AuthTokenVerificationReturn)
+async def create_user(user: UserCreate) -> AuthTokenVerificationReturn:
     return await AuthService.create_user(user.email, user.password)
+
+
+@auth_router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie("refresh_token")
+    return {"message": "Logged out successfully"}
+
+
+@auth_router.patch("/verify", response_model=UserReturn)
+async def verify_token(data: AuthTokenVerification) -> UserReturn:
+    return await AuthService.verify_user(data.verification_token)
+
+
+@auth_router.get("/activate", response_model=AuthTokenActivationReturn)
+async def get_activation_token(
+    current_user: User = Depends(get_current_user),
+) -> AuthTokenActivationReturn:
+    return await AuthService.get_activation_token(current_user)
+
+
+@auth_router.patch("/activate", response_model=UserReturn)
+async def activate_token(data: AuthTokenActivation) -> UserReturn:
+    return await AuthService.activate_user(data.activation_token)
+
+
+@auth_router.get("/deactivate", response_model=AuthTokenDeactivationReturn)
+async def get_deactivation_token(
+    current_user: User = Depends(get_current_active_user),
+) -> AuthTokenDeactivationReturn:
+    return await AuthService.get_deactivation_token(current_user)
+
+
+@auth_router.patch("/deactivate", response_model=UserReturn)
+async def deactivate_token(data: AuthTokenDeactivation) -> UserReturn:
+    return await AuthService.deactivate_user(data.deactivation_token)

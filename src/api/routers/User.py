@@ -1,9 +1,8 @@
-from typing import Optional, Annotated
+from typing import Annotated
 from fastapi import APIRouter, Depends, Query
-from beanie import PydanticObjectId
 
 from src.api.services import UserService
-from src.api.schemas import UserReturn
+from src.api.schemas import UserReturn, UserUpdate
 from src.api.dependencies import get_current_active_user
 
 user_router = APIRouter(prefix="/user", tags=["user"])
@@ -28,20 +27,16 @@ async def search_users(
     return await UserService.search_users(query, search_fields)
 
 
-@user_router.patch("/{user_id}", response_model=UserReturn)
-async def update_user(
-    user_id: PydanticObjectId,
-    name: Optional[str] = None,
-    password: Optional[str] = None,
-    is_active: Optional[bool] = None,
-    is_superuser: Optional[bool] = None,
-    is_verified: Optional[bool] = None,
+@user_router.get("/me", response_model=UserReturn)
+async def get_current_user(
+    current_user: Annotated[UserReturn, Depends(get_current_active_user)],
 ) -> UserReturn:
-    return await UserService.update_user(
-        user_id,
-        name=name,
-        plain_password=password,
-        is_active=is_active,
-        is_superuser=is_superuser,
-        is_verified=is_verified,
-    )
+    return current_user
+
+
+@user_router.patch("/me", response_model=UserReturn)
+async def update_user_details(
+    current_user: Annotated[UserReturn, Depends(get_current_active_user)],
+    data: UserUpdate,
+) -> UserReturn:
+    return await UserService.update_user_generic_details(current_user.id, data)

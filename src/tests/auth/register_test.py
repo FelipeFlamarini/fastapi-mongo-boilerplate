@@ -16,7 +16,7 @@ def test_duplicate_registration(
 
 
 @pytest.mark.parametrize(
-    "payload,expected_status,test_id",
+    "payload, expected_status, test_id",
     [
         (
             {"email": "test_all_valid@email.com", "password": "Password123"},

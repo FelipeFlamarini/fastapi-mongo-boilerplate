@@ -1,10 +1,9 @@
-from pymongo.errors import DuplicateKeyError
 from beanie import PydanticObjectId
 from pydantic import EmailStr
-from email_validator import validate_email
 
 from src.api.repositories.User import UserRepository
 from src.api.models import User
+from src.api.schemas import UserUpdate
 from src.core.exceptions import *
 
 
@@ -61,12 +60,16 @@ class UserService:
         return user
 
     @staticmethod
-    async def update_user(
-        user_id: PydanticObjectId,
-        name: str | None = None,
-        plain_password: str | None = None,
-        is_active: bool | None = None,
+    async def update_user_generic_details(
+        user_id: PydanticObjectId, data: UserUpdate
     ) -> User:
         user = await UserRepository.find_user_by_id(user_id)
         if not user:
             raise NotFoundException(f"User with id {user_id} not found")
+
+        update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+
+        if not update_data:
+            return user
+
+        return await UserRepository.update_user_generic_details(user, update_data)
