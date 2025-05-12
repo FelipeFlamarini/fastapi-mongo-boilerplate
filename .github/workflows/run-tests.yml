@@ -16,6 +16,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Create .env.local file
+        run: |
+          cat > .env.local << EOF
+          MONGO_DB_NAME=my-db
+          ACCESS_TOKEN_EXPIRE_MINUTES=10
+          REFRESH_TOKEN_EXPIRE_DAYS=7
+          VERIFICATION_TOKEN_EXPIRE_MINUTES=60
+          ACTIVATION_TOKEN_EXPIRE_MINUTES=60
+          DEACTIVATION_TOKEN_EXPIRE_MINUTES=60
+          SECRET_KEY=secretkey
+          ALGORITHM=HS256
+          TIMEZONE=-3
+          EOF
+
       - name: Run tests
         run: |
           docker compose -f compose.tests.yaml --profile test up --build --abort-on-container-exit --exit-code-from api-test
