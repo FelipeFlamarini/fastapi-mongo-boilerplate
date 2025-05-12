@@ -37,7 +37,9 @@ def register_user(client: TestClient, credentials_json: dict) -> None:
 
 @pytest.fixture(autouse=True, scope="session")
 def auth_tokens(
-    client: TestClient, credentials_data: dict, register_user: None
+    client: TestClient,
+    credentials_data: dict,
+    register_user: None,
 ) -> None:
     response = client.post("/auth/login", data=credentials_data)
     assert response.status_code == 200
@@ -56,3 +58,14 @@ def auth_tokens(
     client.headers.setdefault("Authorization", f"Bearer {access_token}")
 
     return None
+
+
+# @pytest.fixture(autouse=True, scope="session")
+# def patch_user_name(client: TestClient, auth_tokens: dict) -> None:
+#     response = client.patch(
+#         "/user",
+#         json={"name": "Test User"},
+#     )
+#     assert response.status_code == 200
+#     data = response.json()
+#     assert data["name"] == "Test User"

@@ -2,57 +2,16 @@ from fastapi.testclient import TestClient
 import pytest
 
 
-def test_invalid_login(client: TestClient):
-    invalid_credentials = {
-        "username": "nonexistent@email.com",
-        "password": "WrongPassword",
-    }
-    response = client.post("/auth/login", data=invalid_credentials)
-    assert response.status_code == 404
-
-
-def test_get_tokens(client: TestClient, credentials_data: dict):
-    response = client.post("/auth/login", data=credentials_data)
-    assert response.status_code == 200
-    assert response.json().get("access_token") is not None
-    assert response.json().get("token_type") == "bearer"
-
-
-def test_refresh_token_with_access_token(client: TestClient):
-    response = client.post("/auth/refresh")
-    assert response.status_code == 200
-    assert response.json().get("access_token") is not None
-    assert response.json().get("token_type") == "bearer"
-
-
-def test_refresh_token_without_access_token(client: TestClient):
-    response = client.post("/auth/refresh", headers={"Authorization": ""})
-    assert response.status_code == 200
-    assert response.json().get("access_token") is not None
-    assert response.json().get("token_type") == "bearer"
-
-
-def test_invalid_refresh_token(client: TestClient):
-    response = client.post(
-        "/auth/refresh",
-        cookies={"refresh_token": "invalid_refresh_token"},
-    )
-    assert response.status_code == 401
-
-
-def test_missing_refresh_token(client: TestClient):
-    response = client.post("/auth/refresh", cookies={"refresh_token": ""})
-    assert response.status_code == 401
-
-
-def test_register_user_success(client: TestClient):
+def test_register_user_success(client: TestClient, route_prefix: str):
     new_user = {"email": "another_test@email.com", "password": "Password123"}
-    response = client.post("/auth/register", json=new_user)
+    response = client.post(f"{route_prefix}/register", json=new_user)
     assert response.status_code == 200
 
 
-def test_duplicate_registration(client: TestClient, credentials_json: dict):
-    response = client.post("/auth/register", json=credentials_json)
+def test_duplicate_registration(
+    client: TestClient, credentials_json: dict, route_prefix: str
+):
+    response = client.post(f"{route_prefix}/register", json=credentials_json)
     assert response.status_code == 409
 
 
@@ -140,20 +99,20 @@ def test_duplicate_registration(client: TestClient, credentials_json: dict):
     ],
 )
 def test_create_user_invalid_inputs(
-    client: TestClient, payload, expected_status, test_id
+    client: TestClient, payload, expected_status, test_id, route_prefix: str
 ):
-    response = client.post("/auth/register", json=payload)
+    response = client.post(f"{route_prefix}/register", json=payload)
     assert response.status_code == expected_status, f"Failed for case: {test_id}"
 
 
-def test_create_user_conflict(client: TestClient):
+def test_create_user_conflict(client: TestClient, route_prefix: str):
     client.post(
-        "/auth/register",
+        f"{route_prefix}/register",
         json={"email": "test_conflict@email.com", "password": "Password123"},
     )
 
     response_conflict = client.post(
-        "/auth/register",
+        f"{route_prefix}/register",
         json={"email": "test_conflict@email.com", "password": "Password123"},
     )
     assert response_conflict.status_code == 409
