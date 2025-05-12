@@ -17,7 +17,9 @@
         "ms-python.python",
         "ms-python.black-formatter",
         "mongodb.mongodb-vscode",
-        "ms-azuretools.vscode-containers"
+        "ms-azuretools.vscode-containers",
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml"
       ]
     }
   }

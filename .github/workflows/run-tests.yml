@@ -1,0 +1,21 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run tests
+        run: |
+          docker compose -f compose.tests.yaml --profile test up --build --abort-on-container-exit --exit-code-from api-test
