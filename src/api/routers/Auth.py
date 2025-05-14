@@ -1,7 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Response, Depends, Request
+from fastapi import APIRouter, Response, Depends, Request, Query
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import EmailStr
 
 from src.core.config import get_settings
 from src.core.exceptions import UnauthorizedException
@@ -16,6 +17,9 @@ from src.api.schemas import (
     AuthTokenActivationReturn,
     AuthTokenDeactivation,
     AuthTokenDeactivationReturn,
+    AuthTokenLostPassword,
+    AuthTokenLostPasswordReturn,
+    AuthChangePassword
 )
 from src.api.dependencies import get_current_user, get_current_active_user
 
@@ -91,3 +95,26 @@ async def get_deactivation_token(
 @auth_router.patch("/deactivate", response_model=UserReturn)
 async def deactivate_token(data: AuthTokenDeactivation) -> UserReturn:
     return await AuthService.deactivate_user(data.deactivation_token)
+
+
+@auth_router.get("/lost_password", response_model=AuthTokenLostPasswordReturn)
+async def get_lost_password_token(
+    email: EmailStr = Query(..., title="Email",
+                            description="User email for lost password token")
+) -> AuthTokenLostPasswordReturn:
+    return await AuthService.get_lost_password_token(email)
+
+
+@auth_router.patch("/lost_password", response_model=UserReturn)
+async def lost_password_token(
+    data: AuthTokenLostPassword
+) -> UserReturn:
+    return await AuthService.change_lost_password(data.lost_password_token, data.new_password)
+
+
+@auth_router.patch("/change_password", response_model=UserReturn)
+async def change_password(
+    data: AuthChangePassword,
+    current_user: User = Depends(get_current_active_user),
+) -> UserReturn:
+    return await AuthService.change_password(current_user.id, data.old_password, data.new_password)

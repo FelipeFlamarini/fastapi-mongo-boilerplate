@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, UTC
 import bcrypt
 import jwt
+import re
 
 from fastapi.security import OAuth2PasswordBearer
 
@@ -11,6 +12,21 @@ settings = get_settings()
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
+def validate_password_strength(password):
+    """Validate that the password contains at least 1 lowercase, 1 uppercase, 1 number, and has a valid length."""
+    if len(password) < 8:
+        raise ValueError("Password must be at least 8 characters long")
+    if len(password) > 128:
+        raise ValueError(f"Password must not exceed 128 characters")
+    if not re.search(r"[a-z]", password):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not re.search(r"[A-Z]", password):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not re.search(r"\d", password):
+        raise ValueError("Password must contain at least one number")
+    return password
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -47,6 +63,10 @@ def create_token(data: dict, token_type: TokenType):
         case TokenType.VERIFICATION:
             expire = datetime.now(UTC).replace(tzinfo=None) + timedelta(
                 days=settings.verification_token_expire_minutes
+            )
+        case TokenType.LOST_PASSWORD:
+            expire = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                days=settings.lost_password_token_expire_minutes
             )
 
     to_encode.update({"exp": expire, "token_type": token_type})

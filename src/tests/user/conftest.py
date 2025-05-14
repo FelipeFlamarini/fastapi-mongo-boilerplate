@@ -8,6 +8,6 @@ def first_user(client: TestClient) -> dict:
     return response.json()[0]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="package")
 def route_prefix() -> str:
     return "/user"
