@@ -89,7 +89,7 @@ def test_duplicate_registration(
             {
                 "email": "test_valid_password_128_length@email.com",
                 "password": "ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGH",
-            },\
+            },
             200,
             "valid_password_128_length",
         ),
