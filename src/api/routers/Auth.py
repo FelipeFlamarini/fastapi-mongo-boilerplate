@@ -19,6 +19,7 @@ from src.api.schemas import (
     AuthTokenDeactivationReturn,
     AuthTokenLostPassword,
     AuthTokenLostPasswordReturn,
+    AuthChangePassword
 )
 from src.api.dependencies import get_current_user, get_current_active_user
 
@@ -109,3 +110,11 @@ async def lost_password_token(
     data: AuthTokenLostPassword
 ) -> UserReturn:
     return await AuthService.change_lost_password(data.lost_password_token, data.new_password)
+
+
+@auth_router.patch("/change_password", response_model=UserReturn)
+async def change_password(
+    data: AuthChangePassword,
+    current_user: User = Depends(get_current_active_user),
+) -> UserReturn:
+    return await AuthService.change_password(current_user.id, data.old_password, data.new_password)

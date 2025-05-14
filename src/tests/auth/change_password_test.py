@@ -62,7 +62,7 @@ def test_change_password_invalid_old_password(
 ):
     response = client.patch(
         f"{route_prefix}/{route_name}",
-        json={"old_password": "invalid_old_password", "new_password": new_password})
+        json={"old_password": "Invalid_0ld_password", "new_password": new_password})
     assert response.status_code == 401
     assert "detail" in response.json()
 

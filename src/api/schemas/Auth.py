@@ -47,3 +47,17 @@ class AuthTokenLostPasswordReturn(BaseModel):
 
 class AuthTokenDeactivationReturn(AuthTokenDeactivation):
     pass
+
+
+class AuthChangePassword(BaseModel):
+    old_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("old_password")
+    def validate_password(cls, password):
+        return validate_password_strength(password)
+
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    def validate_password(cls, password):
+        return validate_password_strength(password)
