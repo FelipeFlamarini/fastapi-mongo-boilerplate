@@ -71,11 +71,11 @@ def test_duplicate_registration(
         ),
         (
             {
-                "email": "test_invalid_password_33_length@email.com",
-                "password": "ABCDEFGHIJabcdefghij1234567890abc",
+                "email": "test_invalid_password_129_length@email.com",
+                "password": "ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGHI",
             },
             422,
-            "invalid_password_33_length",
+            "invalid_password_129_length",
         ),
         (
             {
@@ -87,11 +87,11 @@ def test_duplicate_registration(
         ),
         (
             {
-                "email": "test_valid_password_32_length@email.com",
-                "password": "ABCDEFGHIJabcdefghij1234567890ab",
-            },
+                "email": "test_valid_password_128_length@email.com",
+                "password": "ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGHIJabcdefghij1234567890ABCDEFGH",
+            },\
             200,
-            "valid_password_32_length",
+            "valid_password_128_length",
         ),
         ({"password": "Password123"}, 422, "missing_email"),
         ({"email": "test_missing_password@email.com"}, 422, "missing_password"),

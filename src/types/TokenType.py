@@ -7,4 +7,4 @@ class TokenType(str, Enum):
     VERIFICATION = "verification"
     ACTIVATION = "activation"
     DEACTIVATION = "deactivation"
-    PASSWORD_RESET = "password_reset"
+    LOST_PASSWORD = "lost_password"

@@ -40,7 +40,7 @@ class AuthService:
         return {
             "verification_token": create_token(
                 data={"sub": str(user.id)},
-                token_type=TokenType.VERIFICATION,
+                token_type=TokenType.VERIFICATION
             )
         }
 
@@ -66,7 +66,8 @@ class AuthService:
 
     @staticmethod
     async def refresh_access_token(refresh_token: str):
-        token_data = verify_token(token=refresh_token, token_type=TokenType.REFRESH)
+        token_data = verify_token(
+            token=refresh_token, token_type=TokenType.REFRESH)
         if not token_data:
             raise UnauthorizedException("Invalid refresh token")
 
@@ -82,7 +83,8 @@ class AuthService:
     @staticmethod
     async def verify_user(verification_code: str) -> User:
         try:
-            user_id = verify_token(verification_code, TokenType.VERIFICATION)["sub"]
+            user_id = verify_token(
+                verification_code, TokenType.VERIFICATION)["sub"]
         except Exception as e:
             raise UnauthorizedException("Invalid verification token") from e
         user = await UserRepository.find_user_by_id(user_id)
@@ -147,3 +149,30 @@ class AuthService:
                 token_type=TokenType.DEACTIVATION,
             )
         }
+
+    @staticmethod
+    async def get_lost_password_token(email: EmailStr) -> str:
+        user = await UserService.find_user_by_email(email)
+        if not user:
+            raise NotFoundException(f"User with email {email} not found")
+
+        return {
+            "lost_password_token": create_token(
+                data={"sub": str(user.id)},
+                token_type=TokenType.LOST_PASSWORD,
+            )
+        }
+
+    @staticmethod
+    async def change_lost_password(lost_password_token: str, new_password: str) -> User:
+        token_data = verify_token(
+            token=lost_password_token, token_type=TokenType.LOST_PASSWORD)
+        if not token_data:
+            raise UnauthorizedException("Invalid lost password token")
+
+        user_id = token_data["sub"]
+        user = await UserRepository.find_user_by_id(user_id)
+        if not user:
+            raise NotFoundException(f"User with id {user_id} not found")
+
+        return await UserRepository.update_user_password(user, new_password)

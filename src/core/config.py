@@ -12,6 +12,7 @@ class __Settings__(BaseSettings):
     verification_token_expire_minutes: Optional[int] = 60
     activation_token_expire_minutes: Optional[int] = 60
     deactivation_token_expire_minutes: Optional[int] = 60
+    lost_password_token_expire_minutes: Optional[int] = 60
     secret_key: str = "my_secret_key"
     algorithm: str = "HS256"
     timezone: Optional[int] = 0

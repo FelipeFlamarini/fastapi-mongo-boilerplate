@@ -104,3 +104,11 @@ class UserRepository:
                 setattr(user, key, value)
         await user.save()
         return user
+
+    @staticmethod
+    async def update_user_password(
+        user: User, plain_password: str
+    ) -> User | None:
+        user.hashed_password = get_password_hash(plain_password)
+        await user.save()
+        return user
