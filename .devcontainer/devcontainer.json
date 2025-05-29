@@ -12,7 +12,6 @@
   // "forwardPorts": [],
   "postCreateCommand": {
     "install dependencies": "poetry install",
-    "fix permissions": "sudo chown -R 1000:1000 /workspaces"
   },
   "customizations": {
     "vscode": {
