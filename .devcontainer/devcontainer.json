@@ -21,7 +21,8 @@
         "mongodb.mongodb-vscode",
         "ms-azuretools.vscode-containers",
         "github.vscode-github-actions",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode"
       ]
     }
   },
