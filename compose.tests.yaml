@@ -20,3 +20,5 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: changeme
     tmpfs:
       - /data/db
+    restart: "no"
+    profiles: [ "test" ]

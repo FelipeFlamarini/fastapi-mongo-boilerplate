@@ -11,8 +11,7 @@
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
   "postCreateCommand": {
-    "install dependencies": "poetry install",
-    "fix permissions": "sudo chown -R 1000:1000 /workspaces"
+    "install dependencies": "poetry install"
   },
   "customizations": {
     "vscode": {
