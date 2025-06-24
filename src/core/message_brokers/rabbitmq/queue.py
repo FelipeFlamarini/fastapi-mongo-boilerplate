@@ -67,9 +67,6 @@ class RabbitMQQueue(QueueABC):
         if not self._callback:
             raise RuntimeError("No callback set. Call setup_consumer first.")
 
-        print(
-            f" [*] Waiting for messages in {self._queue_name} queue. To exit press CTRL+C")
-
         while True:
             try:
                 self.channel.connection.process_data_events(time_limit=0.1)

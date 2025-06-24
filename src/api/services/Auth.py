@@ -79,7 +79,11 @@ class AuthService:
             raise UnauthorizedException(
                 "No verification code found. Please request a new one.")
 
-        if user.verification_code_expires_at < datetime.now(UTC):
+        expiry_time = user.verification_code_expires_at
+        if expiry_time.tzinfo is None:
+            expiry_time = expiry_time.replace(tzinfo=UTC)
+        
+        if expiry_time < datetime.now(UTC):
             raise UnauthorizedException(
                 "Verification code has expired. Please request a new one.")
 
