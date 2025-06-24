@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator, Field
+from pydantic import BaseModel, field_validator, Field, EmailStr
 
 from src.core.security import validate_password_strength
 
@@ -12,12 +12,17 @@ class AuthTokenRefreshReturn(AuthTokenLoginReturn):
     pass
 
 
-class AuthTokenVerification(BaseModel):
-    verification_token: str
+class AuthVerifyCode(BaseModel):
+    email: EmailStr
+    code: str
 
 
-class AuthTokenVerificationReturn(AuthTokenVerification):
-    pass
+class AuthResendVerificationCode(BaseModel):
+    email: EmailStr
+
+
+class AuthMessageResponse(BaseModel):
+    message: str
 
 
 class AuthTokenActivation(BaseModel):

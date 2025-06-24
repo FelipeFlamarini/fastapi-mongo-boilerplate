@@ -11,8 +11,9 @@ from src.api.services import AuthService
 from src.api.schemas import (
     UserCreate,
     UserReturn,
-    AuthTokenVerification,
-    AuthTokenVerificationReturn,
+    AuthVerifyCode,
+    AuthResendVerificationCode,
+    AuthMessageResponse,
     AuthTokenActivation,
     AuthTokenActivationReturn,
     AuthTokenDeactivation,
@@ -57,8 +58,8 @@ async def refresh_access_token(request: Request):
     return await AuthService.refresh_access_token(refresh_token=refresh_token)
 
 
-@auth_router.post("/register", response_model=AuthTokenVerificationReturn)
-async def create_user(user: UserCreate) -> AuthTokenVerificationReturn:
+@auth_router.post("/register", response_model=AuthMessageResponse)
+async def create_user(user: UserCreate) -> AuthMessageResponse:
     return await AuthService.create_user(user.email, user.password)
 
 
@@ -68,9 +69,14 @@ async def logout(response: Response):
     return {"message": "Logged out successfully"}
 
 
-@auth_router.patch("/verify", response_model=UserReturn)
-async def verify_token(data: AuthTokenVerification) -> UserReturn:
-    return await AuthService.verify_user(data.verification_token)
+@auth_router.post("/verify", response_model=UserReturn)
+async def verify_email(data: AuthVerifyCode) -> UserReturn:
+    return await AuthService.verify_user(data.code, data.email)
+
+
+@auth_router.post("/verify/resend", response_model=AuthMessageResponse)
+async def resend_verification_code(data: AuthResendVerificationCode) -> AuthMessageResponse:
+    return await AuthService.resend_verification_code(data.email)
 
 
 @auth_router.get("/activate", response_model=AuthTokenActivationReturn)

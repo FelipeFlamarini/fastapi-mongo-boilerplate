@@ -1,7 +1,9 @@
-from datetime import timedelta
+from datetime import timedelta, datetime, UTC
 from pydantic import EmailStr
 from pymongo.errors import DuplicateKeyError
 from beanie import PydanticObjectId
+import random
+import string
 
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -16,12 +18,21 @@ from src.api.models import User
 from src.api.services.User import UserService
 from src.api.repositories import UserRepository
 from src.types import TokenType
+from src.core.email.email_queue_service import EmailQueueService
 
 
 settings = get_settings()
+email_service = EmailQueueService()
 
 
 class AuthService:
+    @staticmethod
+    def generate_verification_code(length: int = None) -> str:
+        """Generate a random verification code"""
+        if length is None:
+            length = settings.verification_code_length
+        return ''.join(random.choices(string.digits, k=length))
+
     @staticmethod
     async def __authenticate_user__(email: str, plain_password: str) -> User:
         user = await UserService.find_user_by_email(email)
@@ -35,13 +46,78 @@ class AuthService:
     async def create_user(email: EmailStr, plain_password: str) -> User:
         try:
             user = await UserRepository.create_user(email, plain_password)
+
+            verification_code = AuthService.generate_verification_code()
+            user.verification_code = verification_code
+            user.verification_code_expires_at = datetime.now(
+                UTC) + timedelta(minutes=settings.verification_token_expire_minutes)
+            await user.save()
+
+            await email_service.queue_email(
+                to_email=email,
+                subject="Verify your email address",
+                template_name="verification_code",
+                template_data={
+                    "name": email.split("@")[0],
+                    "code": verification_code
+                }
+            )
+
+            return {
+                "message": "Please check your email for the verification code"
+            }
         except DuplicateKeyError as e:
             raise ConflictException(f"User with email {email} already exists")
+
+    @staticmethod
+    async def verify_user(verification_code: str, email: EmailStr) -> User:
+        user = await UserService.find_user_by_email(email)
+        if not user:
+            raise NotFoundException("User not found")
+
+        if not user.verification_code:
+            raise UnauthorizedException(
+                "No verification code found. Please request a new one.")
+
+        if user.verification_code_expires_at < datetime.now(UTC):
+            raise UnauthorizedException(
+                "Verification code has expired. Please request a new one.")
+
+        if user.verification_code != verification_code:
+            raise UnauthorizedException("Invalid verification code")
+
+        user.verification_code = None
+        user.verification_code_expires_at = None
+
+        return await UserRepository.verify_user(user)
+
+    @staticmethod
+    async def resend_verification_code(email: EmailStr) -> None:
+        user = await UserService.find_user_by_email(email)
+        if not user:
+            raise NotFoundException("User not found")
+
+        if user.is_verified:
+            raise ConflictException("User is already verified")
+
+        verification_code = AuthService.generate_verification_code()
+        user.verification_code = verification_code
+        user.verification_code_expires_at = datetime.now(
+            UTC) + timedelta(minutes=settings.verification_token_expire_minutes)
+        await user.save()
+
+        await email_service.queue_email(
+            to_email=email,
+            subject="Your new verification code",
+            template_name="verification_code",
+            template_data={
+                "name": email.split("@")[0],
+                "code": verification_code
+            }
+        )
+
         return {
-            "verification_token": create_token(
-                data={"sub": str(user.id)},
-                token_type=TokenType.VERIFICATION
-            )
+            "message": "New verification code sent to your email"
         }
 
     @staticmethod
@@ -79,19 +155,6 @@ class AuthService:
             "access_token": access_token,
             "token_type": "bearer",
         }
-
-    @staticmethod
-    async def verify_user(verification_code: str) -> User:
-        try:
-            user_id = verify_token(
-                verification_code, TokenType.VERIFICATION)["sub"]
-        except Exception as e:
-            raise UnauthorizedException("Invalid verification token") from e
-        user = await UserRepository.find_user_by_id(user_id)
-        if not user:
-            raise NotFoundException(f"User with id {user_id} not found")
-
-        return await UserRepository.verify_user(user)
 
     @staticmethod
     async def change_password(
@@ -156,11 +219,23 @@ class AuthService:
         if not user:
             raise NotFoundException(f"User with email {email} not found")
 
+        lost_password_token = create_token(
+            data={"sub": str(user.id)},
+            token_type=TokenType.LOST_PASSWORD,
+        )
+
+        base_url = settings.frontend_url
+        await email_service.queue_email(
+            to_email=email,
+            subject="Password Reset Request",
+            template_name="reset_password",
+            template_data={
+                "reset_url": f"{base_url}/reset-password?token={lost_password_token}"
+            }
+        )
+
         return {
-            "lost_password_token": create_token(
-                data={"sub": str(user.id)},
-                token_type=TokenType.LOST_PASSWORD,
-            )
+            "lost_password_token": lost_password_token
         }
 
     @staticmethod
