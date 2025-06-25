@@ -67,13 +67,21 @@ class RabbitMQQueue(QueueABC):
         if not self._callback:
             raise RuntimeError("No callback set. Call setup_consumer first.")
 
-        while True:
-            try:
-                self.channel.connection.process_data_events(time_limit=0.1)
-                await asyncio.sleep(0.1)  # Give other tasks a chance to run
-            except Exception as e:
-                print(f"Error consuming messages: {str(e)}")
-                break
+        try:
+            while True:
+                # Check for cancellation
+                if asyncio.current_task().cancelled():
+                    break
+                    
+                try:
+                    self.channel.connection.process_data_events(time_limit=0.1)
+                    await asyncio.sleep(0.1)  # Give other tasks a chance to run
+                except Exception as e:
+                    print(f"Error consuming messages: {str(e)}")
+                    break
+        except asyncio.CancelledError:
+            print("Message consumption cancelled")
+            raise
 
     def close(self) -> None:
         """Closes the connection"""
